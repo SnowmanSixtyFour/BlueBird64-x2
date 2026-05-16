@@ -2,7 +2,7 @@
 
 <b>Blue Bird 64 x2</b> is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
-All Freesound.org sounds used are licensed under the [Creative Commons 0 License](https://creativecommons.org/publicdomain/zero/1.0/). All sounds used can be found in [Credits.cs](https://github.com/SnowmanSixtyFour/BetweenTheLines/blob/game-jam/BetweenTheLines/Source/States/CreditsState.cs).
+All Freesound.org sounds used are licensed under the [Creative Commons 0 License](https://creativecommons.org/publicdomain/zero/1.0/).
 
 ## GNU General Public License v3.0
 ```

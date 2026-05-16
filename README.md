@@ -20,6 +20,10 @@ Now, in the sequel, you can play online and compete for the highest score.
 ### Multiplayer
 Play with friends! Play with Mom and Dad! Play with <i><b>anyone!</b></i>
 
+## Special Thanks
+
+[NetCode for GameObjects](https://docs.unity3d.com/Packages/com.unity.netcode.gameobjects@2.11/manual/index.html)
+
 # Copyright
 Copyright (c) 2026 Snowman64, under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
