@@ -4,9 +4,10 @@ using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
-using UnityEngine;
-using UnityEngine.UI;
 using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameLobby : MonoBehaviour
 {
@@ -26,15 +27,23 @@ public class GameLobby : MonoBehaviour
     private string playerName;
 
     // Buttons
+    [SerializeField] private Button backButton;
+
     [SerializeField] private Button createLobbyButton;
     [SerializeField] private Button refreshButton;
+
+    [SerializeField] private Button randomLobbyButton;
 
     private async void Start()
     {
         // Set Variables
 
+        backButton.onClick.AddListener(BackButtonClicked);
+
         createLobbyButton.onClick.AddListener(CreateLobbyClicked);
         refreshButton.onClick.AddListener(RefreshButtonClicked);
+
+        randomLobbyButton.onClick.AddListener(RandomLobbyButtonClicked);
 
         // Login to Multiplayer
 
@@ -60,6 +69,18 @@ public class GameLobby : MonoBehaviour
     private void RefreshButtonClicked()
     {
         ListLobbies();
+    }
+
+    private void RandomLobbyButtonClicked()
+    {
+        JoinRandomLobby();
+    }
+
+    private void BackButtonClicked()
+    {
+        LeaveLobby();
+
+        SceneManager.LoadScene("Title");
     }
 
     private async void CreateLobby()
