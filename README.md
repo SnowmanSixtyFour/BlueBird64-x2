@@ -9,16 +9,14 @@
 </a>
 
 ### A multiplayer game made with [Unity](https://unity.com/) for the [Make Literally Anything Jam](https://itch.io/jam/make-literally-anything-jam-2026).
-<i><b>Blue Bird 64 x2 is a sequel to the (zero) award-winning game [Blue Bird 64](https://github.com/SnowmanSixtyFour/BlueBird64), made in just 2 days.</b></i>
-
-Did anyone ask for it? <b>No!</b> Is it here? <b>Of course it is!</b>
+<i><b>Blue Bird 64 x2 is a sequel to the original game [Blue Bird 64](https://github.com/SnowmanSixtyFour/BlueBird64), made in just 2 days.</b></i>
 
 # About
 Blue Bird 64's original gameplay loop featured a spin on the classic Flappy Bird gameplay loop, with a full 3D environment and a movable camera.
 
-Now, in the sequel, you can play online and compete for the highest score.
+Now, the formula returns with online multiplayer support.
 ### Multiplayer
-Play with friends! Play with Mom and Dad! Play with <i><b>anyone!</b></i>
+TBA
 
 ## Special Thanks
 
