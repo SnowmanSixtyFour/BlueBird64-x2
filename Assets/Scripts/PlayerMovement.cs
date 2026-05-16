@@ -5,14 +5,20 @@ public class PlayerMovement : NetworkBehaviour
 {
     public float speed = 5f;
 
-    public GameObject PlayerModel;
+    public GameObject birdBody, birdWings, birdTail1, birdTail2, birdTail3;
+
+    private Color hostColor = Color.red;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         if (IsOwner)
         {
-            PlayerModel.GetComponent<Renderer>().material.color = Color.red;
+            birdBody.GetComponent<Renderer>().material.color = hostColor;
+            birdWings.GetComponent<Renderer>().material.color = hostColor;
+            birdTail1.GetComponent<Renderer>().material.color = hostColor;
+            birdTail2.GetComponent<Renderer>().material.color = hostColor;
+            birdTail3.GetComponent<Renderer>().material.color = hostColor;
         }
     }
 
