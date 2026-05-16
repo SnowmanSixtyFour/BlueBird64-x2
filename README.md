@@ -1,5 +1,5 @@
 <div align="center">
-<a href="https://snowman64.itch.io/blue-bird-64-x2">
+<a href="https://snowman64.itch.io/bluebird64-x2">
   <img align="center" src="repo/logo.png" alt="Blue Bird 64 x2">
 </a>
 </div>
@@ -9,18 +9,19 @@
 </a>
 
 ### A multiplayer game made with [Unity](https://unity.com/) for the [Make Literally Anything Jam](https://itch.io/jam/make-literally-anything-jam-2026).
-<i><b>Blue Bird 64 x2 is a sequel to the original game [Blue Bird 64](https://github.com/SnowmanSixtyFour/BlueBird64), made in just 2 days.</b></i>
+<i><b>Blue Bird 64 x2 was developed in 7 days, as a sequel to the original game [Blue Bird 64](https://github.com/SnowmanSixtyFour/BlueBird64), originally made in 2 days.</b></i>
 
 # About
 Blue Bird 64's original gameplay loop featured a spin on the classic Flappy Bird gameplay loop, with a full 3D environment and a movable camera.
 
-Now, the formula returns with online multiplayer support.
+Now, Blue Bird 64 x2 features online multiplayer support.
 ### Multiplayer
 TBA
 
 ## Special Thanks
-
 [NetCode for GameObjects](https://docs.unity3d.com/Packages/com.unity.netcode.gameobjects@2.11/manual/index.html)
+
+[Code Monkey](https://unitycodemonkey.com/)
 
 # Copyright
 Copyright (c) 2026 Snowman64, under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
