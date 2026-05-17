@@ -459,6 +459,8 @@ public class MultiplayerMenu : MonoBehaviour
         try
         {
             await LobbyService.Instance.DeleteLobbyAsync(joinedLobby.Id);
+
+            joinedLobby = null;
         }
 
         // Error

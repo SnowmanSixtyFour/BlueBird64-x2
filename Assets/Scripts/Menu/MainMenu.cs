@@ -8,6 +8,7 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private Button
         onlineButton,
         classicButton,
+        creditsButton,
         quitButton,
 
         gameJamButton;
@@ -16,6 +17,7 @@ public class MainMenu : MonoBehaviour
     {
         onlineButton.onClick.AddListener(OnlineButtonClicked);
         classicButton.onClick.AddListener(ClassicButtonClicked);
+        creditsButton.onClick.AddListener(CreditsButtonClicked);
         quitButton.onClick.AddListener(QuitButtonClicked);
 
         gameJamButton.onClick.AddListener(GameJamButtonClicked);
@@ -29,6 +31,11 @@ public class MainMenu : MonoBehaviour
     private void ClassicButtonClicked()
     {
         SceneManager.LoadScene("Classic");
+    }
+
+    private void CreditsButtonClicked()
+    {
+        SceneManager.LoadScene("Credits");
     }
 
     private void QuitButtonClicked()
