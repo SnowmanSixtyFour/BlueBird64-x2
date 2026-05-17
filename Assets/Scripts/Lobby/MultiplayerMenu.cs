@@ -1,5 +1,7 @@
-using System;
 using System.Collections.Generic;
+using TMPro;
+using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Lobbies;
@@ -31,12 +33,18 @@ public class MultiplayerMenu : MonoBehaviour
         backButton,
         exitButton,
         createLobbyButton,
+        joinLobbyButton,
+        joinViaCodeButton,
+        codeBackButton,
         refreshButton,
         randomLobbyButton,
         deleteLobbyButton;
+    [SerializeField] private TextMeshProUGUI
+        codeInput;
     [SerializeField] private GameObject
         searchUI,
-        joinedLobbyUI,
+        joiningLobbyUI,
+        joinViaCodeUI,
         hostLobbyUI;
 
     private async void Start()
@@ -48,6 +56,10 @@ public class MultiplayerMenu : MonoBehaviour
         exitButton.onClick.AddListener(ExitButtonClicked);
         createLobbyButton.onClick.AddListener(CreateLobbyClicked);
         refreshButton.onClick.AddListener(RefreshButtonClicked);
+
+        joinLobbyButton.onClick.AddListener(JoinButtonClicked);
+        joinViaCodeButton.onClick.AddListener(JoinViaCodeButtonClicked);
+        codeBackButton.onClick.AddListener(CodeBackButtonClicked);
 
         randomLobbyButton.onClick.AddListener(RandomLobbyButtonClicked);
 
@@ -67,10 +79,42 @@ public class MultiplayerMenu : MonoBehaviour
             };
 
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        }
 
-            // Set Player Name
-            playerName = "Player " + UnityEngine.Random.Range(100, 999);
-            Debug.Log("Your username is " + playerName);
+        // Set Player Name
+        playerName = "Player " + UnityEngine.Random.Range(100, 999);
+        Debug.Log("Your username is " + playerName);
+
+        NetworkManager.Singleton.StartHost();
+    }
+
+    private void JoinButtonClicked()
+    {
+        searchUI.SetActive(false);
+        joinViaCodeUI.SetActive(true);
+    }
+
+    private void CodeBackButtonClicked()
+    {
+        searchUI.SetActive(true);
+        joinViaCodeUI.SetActive(false);
+    }
+
+    private void JoinViaCodeButtonClicked()
+    {
+        // Get User Input for Code
+        string code = codeInput.text;
+
+        // Attempt to Join Lobby
+        try
+        {
+            JoinLobbyByCode(code);
+        }
+
+        // Error (Invalid code)
+        catch (LobbyServiceException e)
+        {
+            Debug.Log(e);
         }
     }
 
@@ -147,7 +191,9 @@ public class MultiplayerMenu : MonoBehaviour
         if (joinedLobby != null) // Joined to Lobby
         {
             searchUI.SetActive(false);
-            joinedLobbyUI.SetActive(true);
+            joiningLobbyUI.SetActive(true);
+
+            joinViaCodeUI.SetActive(false);
 
             if (hostLobby != null) // If Hosting Lobby
             {
@@ -160,8 +206,10 @@ public class MultiplayerMenu : MonoBehaviour
         }
         else // Browsing for Lobby
         {
-            searchUI.SetActive(true);
-            joinedLobbyUI.SetActive(false);
+            if (!joinViaCodeUI.activeSelf) searchUI.SetActive(true);
+            else searchUI.SetActive(false);
+
+            joiningLobbyUI.SetActive(false);
         }
 
         // Update Lobby
@@ -259,6 +307,8 @@ public class MultiplayerMenu : MonoBehaviour
 
             Debug.Log("Joined Lobby with code " + lobbyCode);
             PrintPlayers(lobby);
+
+            NetworkManager.Singleton.StartClient();
         }
 
         // Error when Joining Lobby
@@ -347,16 +397,24 @@ public class MultiplayerMenu : MonoBehaviour
 
     private async void LeaveLobby()
     {
-        // Leave the currently joined Lobby
-        try
+        if (joinedLobby != null)
         {
-            await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, AuthenticationService.Instance.PlayerId);
-        }
+            // Leave the currently joined Lobby
+            try
+            {
+                await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, AuthenticationService.Instance.PlayerId);
 
-        // Error
-        catch (LobbyServiceException e)
-        {
-            Debug.Log(e);
+                // Nullify Joined Lobby
+                joinedLobby = null;
+            }
+
+            // Error
+            catch (LobbyServiceException e)
+            {
+                Debug.Log(e);
+            }
+
+            NetworkManager.Singleton.Shutdown();
         }
     }
 
