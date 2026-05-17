@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class GameLobby : MonoBehaviour
+public class MultiplayerMenu : MonoBehaviour
 {
     private string
         // GameModes
@@ -27,12 +27,17 @@ public class GameLobby : MonoBehaviour
     private string playerName;
 
     // Buttons
-    [SerializeField] private Button backButton;
-
-    [SerializeField] private Button createLobbyButton;
-    [SerializeField] private Button refreshButton;
-
-    [SerializeField] private Button randomLobbyButton;
+    [SerializeField] private Button
+        backButton,
+        exitButton,
+        createLobbyButton,
+        refreshButton,
+        randomLobbyButton,
+        deleteLobbyButton;
+    [SerializeField] private GameObject
+        searchUI,
+        joinedLobbyUI,
+        hostLobbyUI;
 
     private async void Start()
     {
@@ -40,25 +45,38 @@ public class GameLobby : MonoBehaviour
 
         backButton.onClick.AddListener(BackButtonClicked);
 
+        exitButton.onClick.AddListener(ExitButtonClicked);
         createLobbyButton.onClick.AddListener(CreateLobbyClicked);
         refreshButton.onClick.AddListener(RefreshButtonClicked);
 
         randomLobbyButton.onClick.AddListener(RandomLobbyButtonClicked);
 
-        // Login to Multiplayer
+        deleteLobbyButton.onClick.AddListener(DeleteLobbyButtonClicked);
 
         await UnityServices.InitializeAsync();
 
-        AuthenticationService.Instance.SignedIn += () =>
+        // Login to Multiplayer
+
+        if (!AuthenticationService.Instance.IsSignedIn) // If not already logged in
         {
-            Debug.Log("Signed in as " + AuthenticationService.Instance.PlayerId);
-        };
+            // Login
 
-        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            AuthenticationService.Instance.SignedIn += () =>
+            {
+                Debug.Log("Signed in as " + AuthenticationService.Instance.PlayerId);
+            };
 
-        // Set Player Name
-        playerName = "Player " + UnityEngine.Random.Range(100, 999);
-        Debug.Log("Your username is " + playerName);
+            await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+            // Set Player Name
+            playerName = "Player " + UnityEngine.Random.Range(100, 999);
+            Debug.Log("Your username is " + playerName);
+        }
+    }
+
+    private void BackButtonClicked()
+    {
+        SceneManager.LoadScene("Title");
     }
 
     private void CreateLobbyClicked()
@@ -76,11 +94,14 @@ public class GameLobby : MonoBehaviour
         JoinRandomLobby();
     }
 
-    private void BackButtonClicked()
+    private void ExitButtonClicked()
     {
         LeaveLobby();
+    }
 
-        SceneManager.LoadScene("Title");
+    private void DeleteLobbyButtonClicked()
+    {
+        DeleteLobby();
     }
 
     private async void CreateLobby()
@@ -122,6 +143,27 @@ public class GameLobby : MonoBehaviour
 
     private void Update()
     {
+        // Update UI
+        if (joinedLobby != null) // Joined to Lobby
+        {
+            searchUI.SetActive(false);
+            joinedLobbyUI.SetActive(true);
+
+            if (hostLobby != null) // If Hosting Lobby
+            {
+                hostLobbyUI.SetActive(true);
+            }
+            else // If Not Hosting Lobby
+            {
+                hostLobbyUI.SetActive(false);
+            }
+        }
+        else // Browsing for Lobby
+        {
+            searchUI.SetActive(true);
+            joinedLobbyUI.SetActive(false);
+        }
+
         // Update Lobby
         HandleLobbyHeartbeat();
         HandleLobbyPollForUpdates();
@@ -353,12 +395,12 @@ public class GameLobby : MonoBehaviour
         }
     }
 
-    private void DeleteLobby()
+    private async void DeleteLobby()
     {
         // Delete the Current Lobby
         try
         {
-            LobbyService.Instance.DeleteLobbyAsync(joinedLobby.Id);
+            await LobbyService.Instance.DeleteLobbyAsync(joinedLobby.Id);
         }
 
         // Error
