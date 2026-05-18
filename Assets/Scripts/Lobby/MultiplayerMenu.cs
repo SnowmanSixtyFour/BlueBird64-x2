@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
@@ -40,14 +41,17 @@ public class MultiplayerMenu : MonoBehaviour
         randomLobbyButton,
         deleteLobbyButton;
     [SerializeField] private TextMeshProUGUI
-        codeInput;
+        codeInput,
+        playerNameInput,
+        playerCount,
+        lobbyCode;
     [SerializeField] private GameObject
         searchUI,
         joiningLobbyUI,
         joinViaCodeUI,
         hostLobbyUI;
 
-    private async void Start()
+    private async void Awake()
     {
         // Set Variables
 
@@ -82,10 +86,14 @@ public class MultiplayerMenu : MonoBehaviour
         }
 
         // Set Player Name
-        playerName = "Player " + UnityEngine.Random.Range(100, 999);
-        Debug.Log("Your username is " + playerName);
+        playerName = RandomName();
 
         NetworkManager.Singleton.StartHost();
+    }
+
+    private string RandomName()
+    {
+        return "Player " + UnityEngine.Random.Range(100, 999);
     }
 
     private void JoinButtonClicked()
@@ -176,6 +184,8 @@ public class MultiplayerMenu : MonoBehaviour
             PrintPlayers(hostLobby);
 
             Debug.Log("Created lobby \"" + lobbyName + "\" with a limit of " + maxPlayers + " players. ID: " + lobby.Id + " " + lobby.LobbyCode);
+
+            ValidateUsername();
         }
 
         // Error when Creating Lobby
@@ -215,6 +225,9 @@ public class MultiplayerMenu : MonoBehaviour
         // Update Lobby
         HandleLobbyHeartbeat();
         HandleLobbyPollForUpdates();
+
+        // Update UI
+        HandleLobbyDisplayText();
     }
 
     private async void HandleLobbyHeartbeat()
@@ -254,6 +267,44 @@ public class MultiplayerMenu : MonoBehaviour
                 joinedLobby = lobby;
             }
         }
+    }
+
+    private void HandleLobbyDisplayText()
+    {
+        if (joinedLobby != null)
+        {
+            // Reset List of Players
+            playerCount.text = "";
+
+            // Add Player to List
+            foreach (Player player in joinedLobby.Players)
+            {
+                playerCount.text += player.Data["PlayerName"].Value.ToString() + "\n";
+            }
+
+            // Set Lobby Code
+            lobbyCode.text = joinedLobby.LobbyCode.ToString();
+        }
+    }
+
+    private void ValidateUsername()
+    {
+        // Make sure username cannot be blank
+
+        if (!string.IsNullOrWhiteSpace(playerNameInput.text))
+        {
+            playerName = playerNameInput.text;
+        }
+
+        // Make sure username is not too long
+        int maxPlayerNameLength = 10;
+        if (playerName.Length > maxPlayerNameLength)
+        {
+            playerName = playerName.Substring(0, maxPlayerNameLength);
+        }
+
+        // Set Username to chosen text
+        UpdatePlayerName(playerName);
     }
 
     private async void ListLobbies()
@@ -296,12 +347,17 @@ public class MultiplayerMenu : MonoBehaviour
         // Join Lobby by Code
         try
         {
+            ValidateUsername();
+
+            // Set entered code to all caps
+            lobbyCode = lobbyCode.ToUpper();
+
             JoinLobbyByCodeOptions joinLobbyByCodeOptions = new JoinLobbyByCodeOptions
             {
                 Player = GetPlayer()
             };
 
-            Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions);
+            Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode.ToString(), joinLobbyByCodeOptions);
 
             joinedLobby = lobby;
 
@@ -309,6 +365,8 @@ public class MultiplayerMenu : MonoBehaviour
             PrintPlayers(lobby);
 
             NetworkManager.Singleton.StartClient();
+
+            HandleLobbyDisplayText();
         }
 
         // Error when Joining Lobby
@@ -323,15 +381,19 @@ public class MultiplayerMenu : MonoBehaviour
         return new Player
         {
             Data = new Dictionary<string, PlayerDataObject>
-                    {
-                        { "PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, playerName) }
-                    }
+            {
+                { "PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, playerName) }
+            }
         };
     }
 
     private async void JoinRandomLobby()
     {
-        await LobbyService.Instance.QuickJoinLobbyAsync();
+        ValidateUsername();
+
+        joinedLobby = await LobbyService.Instance.QuickJoinLobbyAsync();
+
+        HandleLobbyDisplayText();
     }
 
     private void PrintPlayers()
@@ -440,7 +502,7 @@ public class MultiplayerMenu : MonoBehaviour
         {
             hostLobby = await LobbyService.Instance.UpdateLobbyAsync(hostLobby.Id, new UpdateLobbyOptions
             {
-                HostId = joinedLobby.Players[1].Id
+                HostId = joinedLobby.Players[1].Id // WIP CODE
             });
 
             joinedLobby = hostLobby;
@@ -458,9 +520,13 @@ public class MultiplayerMenu : MonoBehaviour
         // Delete the Current Lobby
         try
         {
+            // Delete Lobby
             await LobbyService.Instance.DeleteLobbyAsync(joinedLobby.Id);
 
+            // Nullify Joined Lobby
             joinedLobby = null;
+
+            NetworkManager.Singleton.Shutdown();
         }
 
         // Error
