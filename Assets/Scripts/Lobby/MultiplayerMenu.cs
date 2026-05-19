@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -40,11 +41,15 @@ public class MultiplayerMenu : MonoBehaviour
         refreshButton,
         randomLobbyButton,
         deleteLobbyButton;
-    [SerializeField] private TextMeshProUGUI
+
+    [SerializeField] private TMP_InputField
         codeInput,
-        playerNameInput,
+        playerNameInput;
+
+    [SerializeField] private TMP_Text
         playerCount,
         lobbyCode;
+
     [SerializeField] private GameObject
         searchUI,
         joiningLobbyUI,
@@ -87,8 +92,6 @@ public class MultiplayerMenu : MonoBehaviour
 
         // Set Player Name
         playerName = RandomName();
-
-        NetworkManager.Singleton.StartHost();
     }
 
     private string RandomName()
@@ -108,15 +111,20 @@ public class MultiplayerMenu : MonoBehaviour
         joinViaCodeUI.SetActive(false);
     }
 
-    private void JoinViaCodeButtonClicked()
+    private async void JoinViaCodeButtonClicked()
     {
         // Get User Input for Code
-        string code = codeInput.text;
+        string code = codeInput.text.ToString();
 
         // Attempt to Join Lobby
         try
         {
-            JoinLobbyByCode(code);
+            await JoinLobbyByCode(code);
+
+            ValidateUsername();
+            HandleLobbyDisplayText();
+
+            PrintPlayers();
         }
 
         // Error (Invalid code)
@@ -131,9 +139,14 @@ public class MultiplayerMenu : MonoBehaviour
         SceneManager.LoadScene("Title");
     }
 
-    private void CreateLobbyClicked()
+    private async void CreateLobbyClicked()
     {
-        CreateLobby();
+        if (ValidateUsername())
+        {
+            await CreateLobby();
+
+            HandleLobbyDisplayText();
+        }
     }
 
     private void RefreshButtonClicked()
@@ -143,7 +156,14 @@ public class MultiplayerMenu : MonoBehaviour
 
     private void RandomLobbyButtonClicked()
     {
-        JoinRandomLobby();
+        if (ValidateUsername())
+        {
+            JoinRandomLobby();
+
+            HandleLobbyDisplayText();
+
+            PrintPlayers();
+        }
     }
 
     private void ExitButtonClicked()
@@ -156,7 +176,7 @@ public class MultiplayerMenu : MonoBehaviour
         DeleteLobby();
     }
 
-    private async void CreateLobby()
+    private async Task CreateLobby()
     {
         // Create Lobby
         try
@@ -185,7 +205,9 @@ public class MultiplayerMenu : MonoBehaviour
 
             Debug.Log("Created lobby \"" + lobbyName + "\" with a limit of " + maxPlayers + " players. ID: " + lobby.Id + " " + lobby.LobbyCode);
 
-            ValidateUsername();
+            lobbyCode.text = joinedLobby.LobbyCode;
+
+            NetworkManager.Singleton.StartHost();
         }
 
         // Error when Creating Lobby
@@ -225,9 +247,6 @@ public class MultiplayerMenu : MonoBehaviour
         // Update Lobby
         HandleLobbyHeartbeat();
         HandleLobbyPollForUpdates();
-
-        // Update UI
-        HandleLobbyDisplayText();
     }
 
     private async void HandleLobbyHeartbeat()
@@ -273,38 +292,43 @@ public class MultiplayerMenu : MonoBehaviour
     {
         if (joinedLobby != null)
         {
-            // Reset List of Players
-            playerCount.text = "";
-
-            // Add Player to List
             foreach (Player player in joinedLobby.Players)
             {
-                playerCount.text += player.Data["PlayerName"].Value.ToString() + "\n";
-            }
+                if (player.Data != null && player.Data.ContainsKey("PlayerName"))
+                {
+                    string username = player.Data["PlayerName"].Value;
+                    Debug.Log("Found player: " + username);
 
-            // Set Lobby Code
-            lobbyCode.text = joinedLobby.LobbyCode.ToString();
+                    playerCount.text += username + "\n";
+                }
+                else
+                {
+                    Debug.LogWarning("PlayerName missing for player");
+                }
+            }
         }
     }
 
-    private void ValidateUsername()
+    private bool ValidateUsername()
     {
-        // Make sure username cannot be blank
+        string input = playerNameInput.text.Trim();
 
-        if (!string.IsNullOrWhiteSpace(playerNameInput.text))
+        if (string.IsNullOrEmpty(input))
         {
-            playerName = playerNameInput.text;
+            playerName = RandomName();
+            return false;
         }
 
-        // Make sure username is not too long
         int maxPlayerNameLength = 10;
-        if (playerName.Length > maxPlayerNameLength)
+
+        if (input.Length > maxPlayerNameLength)
         {
-            playerName = playerName.Substring(0, maxPlayerNameLength);
+            input = input.Substring(0, maxPlayerNameLength);
         }
 
-        // Set Username to chosen text
+        playerName = input;
         UpdatePlayerName(playerName);
+        return true;
     }
 
     private async void ListLobbies()
@@ -342,13 +366,11 @@ public class MultiplayerMenu : MonoBehaviour
         }
     }
 
-    private async void JoinLobbyByCode(string lobbyCode)
+    private async Task JoinLobbyByCode(string lobbyCode)
     {
         // Join Lobby by Code
         try
         {
-            ValidateUsername();
-
             // Set entered code to all caps
             lobbyCode = lobbyCode.ToUpper();
 
@@ -357,7 +379,7 @@ public class MultiplayerMenu : MonoBehaviour
                 Player = GetPlayer()
             };
 
-            Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode.ToString(), joinLobbyByCodeOptions);
+            Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions);
 
             joinedLobby = lobby;
 
@@ -365,8 +387,6 @@ public class MultiplayerMenu : MonoBehaviour
             PrintPlayers(lobby);
 
             NetworkManager.Singleton.StartClient();
-
-            HandleLobbyDisplayText();
         }
 
         // Error when Joining Lobby
@@ -382,18 +402,14 @@ public class MultiplayerMenu : MonoBehaviour
         {
             Data = new Dictionary<string, PlayerDataObject>
             {
-                { "PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, playerName) }
+                { "PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerName) }
             }
         };
     }
 
     private async void JoinRandomLobby()
     {
-        ValidateUsername();
-
         joinedLobby = await LobbyService.Instance.QuickJoinLobbyAsync();
-
-        HandleLobbyDisplayText();
     }
 
     private void PrintPlayers()
