@@ -745,6 +745,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RotatingBirds
   birds: {fileID: 346543399}
+  rotationAmount: 15
+  rotationSpeed: 2
 --- !u!1 &422316926
 GameObject:
   m_ObjectHideFlags: 0
@@ -1676,6 +1678,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RotatingBirds
   birds: {fileID: 1372117183}
+  rotationAmount: 15
+  rotationSpeed: 2
 --- !u!114 &1372117183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2213,7 +2217,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.83137256}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
