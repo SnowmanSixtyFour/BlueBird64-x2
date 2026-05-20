@@ -318,8 +318,11 @@ public class MultiplayerMenu : MonoBehaviour
 
         if (string.IsNullOrEmpty(input))
         {
+            // Randomize Player Name
+
             playerName = RandomName();
-            return false;
+            UpdatePlayerName(playerName);
+            return true;
         }
 
         int maxPlayerNameLength = 10;
@@ -328,6 +331,8 @@ public class MultiplayerMenu : MonoBehaviour
         {
             input = input.Substring(0, maxPlayerNameLength);
         }
+
+        // Set Player Name to Input
 
         playerName = input;
         UpdatePlayerName(playerName);
