@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
-using Unity.VisualScripting;
+using Unity.Services.Relay;
+using Unity.Services.Relay.Models;
+using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -284,6 +285,8 @@ public class MultiplayerMenu : MonoBehaviour
 
                 Lobby lobby = await LobbyService.Instance.GetLobbyAsync(joinedLobby.Id);
                 joinedLobby = lobby;
+
+                HandleLobbyDisplayText();
             }
         }
     }
@@ -292,18 +295,18 @@ public class MultiplayerMenu : MonoBehaviour
     {
         if (joinedLobby != null)
         {
+            playerCount.text = ""; // Reset Text
+
+            // Get Each Player
             foreach (Player player in joinedLobby.Players)
             {
                 if (player.Data != null && player.Data.ContainsKey("PlayerName"))
                 {
                     string username = player.Data["PlayerName"].Value;
+
                     Debug.Log("Found player: " + username);
 
                     playerCount.text += username + "\n";
-                }
-                else
-                {
-                    Debug.LogWarning("PlayerName missing for player");
                 }
             }
         }
