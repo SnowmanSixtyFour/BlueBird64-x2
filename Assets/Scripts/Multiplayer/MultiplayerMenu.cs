@@ -1,15 +1,16 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
-using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -31,6 +32,8 @@ public class MultiplayerMenu : MonoBehaviour
 
     private string playerName;
 
+    private bool isHostReady;
+
     // Buttons
     [SerializeField] private Button
         backButton,
@@ -41,7 +44,8 @@ public class MultiplayerMenu : MonoBehaviour
         codeBackButton,
         refreshButton,
         randomLobbyButton,
-        deleteLobbyButton;
+        deleteLobbyButton,
+        startGameButton;
 
     [SerializeField] private TMP_InputField
         codeInput,
@@ -74,6 +78,8 @@ public class MultiplayerMenu : MonoBehaviour
         randomLobbyButton.onClick.AddListener(RandomLobbyButtonClicked);
 
         deleteLobbyButton.onClick.AddListener(DeleteLobbyButtonClicked);
+        
+        startGameButton.onClick.AddListener(StartButtonClicked);
 
         await UnityServices.InitializeAsync();
 
@@ -133,6 +139,11 @@ public class MultiplayerMenu : MonoBehaviour
         {
             Debug.Log(e);
         }
+    }
+
+    private void StartButtonClicked()
+    {
+        StartGame();
     }
 
     private void BackButtonClicked()
@@ -206,7 +217,19 @@ public class MultiplayerMenu : MonoBehaviour
 
             lobbyCode.text = joinedLobby.LobbyCode;
 
-            NetworkManager.Singleton.StartHost();
+            if (NetworkManager.Singleton != null)
+            {
+                Debug.Log("Starting Host...");
+                NetworkManager.Singleton.StartHost();
+
+                isHostReady = true;
+
+                Debug.Log("Host started");
+            }
+            else
+            {
+                Debug.LogError("NetworkManager is NULL");
+            }
         }
 
         // Error when Creating Lobby
@@ -471,15 +494,11 @@ public class MultiplayerMenu : MonoBehaviour
         }
     }
 
-    public void StartGame()
+    IEnumerator StartGame()
     {
-        if (NetworkManager.Singleton.IsHost)
-        {
-            NetworkManager.Singleton.SceneManager.LoadScene(
-                "Gameplay",
-                LoadSceneMode.Single
-            );
-        }
+        yield return new WaitForSeconds(1.0f);
+
+        NetworkManager.Singleton.SceneManager.LoadScene("Game", LoadSceneMode.Single);
     }
 
     private async void LeaveLobby()
