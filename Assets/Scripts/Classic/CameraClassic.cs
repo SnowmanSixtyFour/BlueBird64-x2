@@ -1,26 +1,25 @@
-using System.Drawing;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.InputSystem.XR;
 
 public class CameraClassic : MonoBehaviour
 {
-    public Transform
-        target; // Pivot Point
+    [Header("Target")]
+    public Transform target;               // Bird to follow
 
-    private float
-        rotationSpeed = 0.25f,
-        cameraRotation = 0;
+    [Header("Camera Settings")]
+    public Vector3 offset = new Vector3(0f, 2f, -5f); // Relative position to the bird
+    public float followSpeed = 5f;         // Smooth follow speed
+    public float rotationSpeed = 2f;       // Optional: rotation smoothing
 
-    public void Update()
+    private void LateUpdate()
     {
-        // Look at Pivot Point of Player
-        transform.LookAt(target.transform);
+        if (target == null) return;
 
-        // Get Input
-        cameraRotation = Input.GetAxis("Vertical");
+        // Smooth position
+        Vector3 desiredPosition = target.position + offset;
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, followSpeed * Time.deltaTime);
 
-        // Rotate Camera
-        transform.RotateAround(target.position, new Vector3(0.0f, 1.0f, 0.0f), cameraRotation * rotationSpeed);
+        // Optional: smooth rotation to look at the bird
+        Quaternion desiredRotation = Quaternion.LookRotation(target.position - transform.position, Vector3.up);
+        transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, rotationSpeed * Time.deltaTime);
     }
 }

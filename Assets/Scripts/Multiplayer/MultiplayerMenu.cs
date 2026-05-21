@@ -219,7 +219,8 @@ public class MultiplayerMenu : MonoBehaviour
 
             if (NetworkManager.Singleton != null)
             {
-                Debug.Log("Starting Host...");
+                Debug.Log("NM: " + NetworkManager.Singleton);
+                Debug.Log("SceneManager: " + NetworkManager.Singleton?.SceneManager);
                 NetworkManager.Singleton.StartHost();
 
                 isHostReady = true;
@@ -494,11 +495,31 @@ public class MultiplayerMenu : MonoBehaviour
         }
     }
 
-    IEnumerator StartGame()
+    public void StartGame()
     {
-        yield return new WaitForSeconds(1.0f);
+        var nm = NetworkManager.Singleton;
+        if (nm == null)
+        {
+            Debug.LogError("NetworkManager missing");
+            return;
+        }
 
-        NetworkManager.Singleton.SceneManager.LoadScene("Game", LoadSceneMode.Single);
+        if (!nm.IsHost)
+        {
+            Debug.LogError("Only host can start");
+            return;
+        }
+
+        if (nm.SceneManager == null)
+        {
+            Debug.LogError("SceneManager not ready");
+            return;
+        }
+
+        Debug.Log("Loading Game scene via NGO");
+
+        // Use NetworkSceneManager to sync for all clients
+        nm.SceneManager.LoadScene("Game", UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
     private async void LeaveLobby()

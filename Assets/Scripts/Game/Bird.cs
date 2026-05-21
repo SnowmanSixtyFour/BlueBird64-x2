@@ -1,111 +1,139 @@
-using UnityEngine;
 using Unity.Netcode;
+using UnityEngine;
 
 public class Bird : NetworkBehaviour
 {
+    [Header("Components")]
     public Rigidbody player;
     public AudioClip flap;
 
-    public float
-        // Game Properties
-        score, // Score
+    [Header("Game State")]
+    public float score;
 
-        // Movement
-        movementSpeed, // Movement Speed
+    // Movement constants from BirdClassic
+    private const float movementSpeed = 2f;   // forward speed
+    private const float rotationSpeed = 100f; // horizontal rotation speed
+    private const float jumpForce = 10f;      // flap strength
+    private const float gravityForce = 9.8f;  // manual gravity (optional)
+    private const float deathBarrier = -5f;
 
-        // Rotation
-        rotationSpeed, // Amount to Rotate Player by
+    private float playerRotation = 0f;
 
-        // Jump
-        gravity, // Gravity Strength
-        jump, // Strength
-
-        // Other
-        deathBarrier; // Game Over Y Position
-
-    /*
-     * Bird Speeds
-     * 
-     * PC:
-     * Gravity - 2
-     * Jump - 10
-     * 
-     * WEB:
-     * Gravity - 8
-     * Jump - 11
-     */
-
-    private float
-        playerRotation = 0; // Current Rotation
-
-    public void Awake()
+    private void Awake()
     {
-        // Initialize Player
         player = GetComponent<Rigidbody>();
+        player.freezeRotation = true;
+        player.useGravity = true; // let Rigidbody handle gravity
         player.detectCollisions = true;
     }
 
-    public void Update()
+    public override void OnNetworkSpawn()
+    {
+        if (!IsOwner)
+        {
+            player.isKinematic = true;
+            enabled = false;
+            return;
+        }
+
+        // Assign camera to owner
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            CameraClassic camScript = mainCam.GetComponent<CameraClassic>();
+            if (camScript != null)
+                camScript.target = transform;
+        }
+    }
+
+    private void Update()
     {
         if (!IsOwner) return;
 
-        // --- Movement ---
+        HandleRotation();
+        HandleJump();
+        ApplyGravity();
+        CheckDeath();
+    }
 
-        // Get Input
-        float x = Input.GetAxis("Horizontal");
-        float y = Input.GetAxis("Horizontal");
+    private void FixedUpdate()
+    {
+        if (!IsOwner) return;
 
-        // Calculate Movement
-        playerRotation += y * rotationSpeed;
+        MoveForward();
+    }
 
-        // Apply Move
-        player.MovePosition(player.position + transform.forward * movementSpeed * Time.deltaTime);
+    private void HandleRotation()
+    {
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
 
-        // Rotate Player
-        player.rotation = Quaternion.Euler(0, playerRotation, 0);
+        // Optional vertical rotation, mainly for visuals
+        playerRotation += vertical * rotationSpeed * Time.deltaTime;
 
-        // Jump
+        // Horizontal rotation
+        transform.Rotate(0f, horizontal * rotationSpeed * Time.deltaTime, 0f);
+
+        // Apply rotation to Rigidbody
+        player.rotation = Quaternion.Euler(0f, playerRotation, 0f);
+    }
+
+    private void MoveForward()
+    {
+        Vector3 forwardDir = transform.forward; // flip to -transform.forward if model points backwards
+        Vector3 movement = forwardDir * movementSpeed * Time.fixedDeltaTime;
+
+        // Move horizontally, leave vertical velocity intact
+        Vector3 newPos = player.position + new Vector3(movement.x, 0f, movement.z);
+        player.MovePosition(newPos);
+    }
+
+    private void HandleJump()
+    {
         if (Input.GetButtonDown("Jump"))
         {
-            // Add Jump Force
-            player.AddForce(Vector3.up * jump, ForceMode.Impulse);
+            Vector3 v = player.linearVelocity;
+            v.y = 0f; // reset Y before flap
+            player.linearVelocity = v;
 
-            // Play SFX
-            AudioSource.PlayClipAtPoint(flap, transform.position);
-        }
+            player.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
 
-        // Gravity
-        player.AddForce(Vector3.down * gravity, ForceMode.Force);
-
-        // Restart Game
-        if (player.position.y < 0)
-        {
-            GameOver();
+            if (flap != null)
+                AudioSource.PlayClipAtPoint(flap, transform.position);
         }
     }
 
-    public void OnCollisionEnter (Collision collision)
+    private void ApplyGravity()
     {
-        // Increase Score
+        // Optional manual gravity
+        //player.AddForce(Vector3.down * gravityForce, ForceMode.Acceleration);
+        // Using Rigidbody gravity by default
+    }
+
+    private void CheckDeath()
+    {
+        if (player.position.y < deathBarrier)
+            GameOver();
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (!IsOwner) return;
+
         if (collision.collider.name == "ScoreIncreaser")
         {
             score++;
-
-            // Disable Score Increaser (by setting to trigger)
             collision.collider.isTrigger = true;
 
-            // Make Score Increaser Visible
-            collision.gameObject.GetComponent<MeshRenderer>().enabled = true; // Enable Mesh Renderer
+            MeshRenderer meshRenderer = collision.gameObject.GetComponent<MeshRenderer>();
+            if (meshRenderer != null)
+                meshRenderer.enabled = true;
         }
 
-        // Game Over
         if (collision.collider.name == "TopHalf" || collision.collider.name == "BottomHalf")
-        {
             GameOver();
-        }
     }
 
-    // On Game Over
     private void GameOver()
     {
         gameObject.SetActive(false);
