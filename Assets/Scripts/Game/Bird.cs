@@ -1,8 +1,7 @@
-using System.IO.Pipes;
-using Unity.VisualScripting;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Bird : MonoBehaviour
+public class Bird : NetworkBehaviour
 {
     public Rigidbody player;
     public AudioClip flap;
@@ -48,6 +47,8 @@ public class Bird : MonoBehaviour
 
     public void Update()
     {
+        if (!IsOwner) return;
+
         // --- Movement ---
 
         // Get Input
@@ -107,7 +108,6 @@ public class Bird : MonoBehaviour
     // On Game Over
     private void GameOver()
     {
-        // Go back to Title
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Title");
+        gameObject.SetActive(false);
     }
 }

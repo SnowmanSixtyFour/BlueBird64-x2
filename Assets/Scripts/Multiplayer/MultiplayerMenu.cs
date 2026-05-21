@@ -142,12 +142,11 @@ public class MultiplayerMenu : MonoBehaviour
 
     private async void CreateLobbyClicked()
     {
-        if (ValidateUsername())
-        {
-            await CreateLobby();
+        ValidateUsername();
 
-            HandleLobbyDisplayText();
-        }
+        await CreateLobby();
+
+        HandleLobbyDisplayText();
     }
 
     private void RefreshButtonClicked()
@@ -157,14 +156,13 @@ public class MultiplayerMenu : MonoBehaviour
 
     private void RandomLobbyButtonClicked()
     {
-        if (ValidateUsername())
-        {
-            JoinRandomLobby();
+        ValidateUsername();
 
-            HandleLobbyDisplayText();
+        JoinRandomLobby();
 
-            PrintPlayers();
-        }
+        HandleLobbyDisplayText();
+
+        PrintPlayers();
     }
 
     private void ExitButtonClicked()
@@ -312,31 +310,23 @@ public class MultiplayerMenu : MonoBehaviour
         }
     }
 
-    private bool ValidateUsername()
+    private void ValidateUsername()
     {
         string input = playerNameInput.text.Trim();
 
         if (string.IsNullOrEmpty(input))
         {
-            // Randomize Player Name
-
             playerName = RandomName();
-            UpdatePlayerName(playerName);
-            return true;
         }
-
-        int maxPlayerNameLength = 10;
-
-        if (input.Length > maxPlayerNameLength)
+        else
         {
-            input = input.Substring(0, maxPlayerNameLength);
+            if (input.Length > 10)
+            {
+                input = input.Substring(0, 10);
+            }
+
+            playerName = input;
         }
-
-        // Set Player Name to Input
-
-        playerName = input;
-        UpdatePlayerName(playerName);
-        return true;
     }
 
     private async void ListLobbies()
@@ -469,7 +459,7 @@ public class MultiplayerMenu : MonoBehaviour
             {
                 Data = new Dictionary<string, PlayerDataObject>
             {
-                { "PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, playerName) }
+                { "PlayerName", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerName) }
             }
             });
         }
@@ -478,6 +468,17 @@ public class MultiplayerMenu : MonoBehaviour
         catch (LobbyServiceException e)
         {
             Debug.Log(e);
+        }
+    }
+
+    public void StartGame()
+    {
+        if (NetworkManager.Singleton.IsHost)
+        {
+            NetworkManager.Singleton.SceneManager.LoadScene(
+                "Gameplay",
+                LoadSceneMode.Single
+            );
         }
     }
 
