@@ -9394,6 +9394,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraClassic
   target: {fileID: 0}
+  offset: {x: 0, y: 2, z: -5}
+  followSpeed: 5
+  rotationSpeed: 2
 --- !u!1 &332906237
 GameObject:
   m_ObjectHideFlags: 0
@@ -41991,7 +41994,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 672c643f7dd477649b1fbdd1c0072f00, type: 3}
+  m_Resource: {fileID: 8300000, guid: 41a9e80d2993d8648bbd6ccca2c3407f, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.25
   m_Pitch: 1
