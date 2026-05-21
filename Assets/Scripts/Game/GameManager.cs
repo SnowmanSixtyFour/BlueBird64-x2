@@ -6,6 +6,8 @@ public class GameManager : NetworkBehaviour
 {
     [SerializeField] private GameObject birdPrefab;
 
+    public static int score = 0;
+
     // Track clients that already have birds
     private HashSet<ulong> spawnedClients = new HashSet<ulong>();
 

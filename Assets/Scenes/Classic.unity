@@ -39993,9 +39993,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 330585543}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2f50d307a8b64d469cd54c3b97f10de, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f4c45c16c08bf24c82f39e7f53bb623, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CameraClassic
+  m_EditorClassIdentifier: Assembly-CSharp::OldCamera
   target: {fileID: 1561146316}
 --- !u!1 &331678859
 GameObject:

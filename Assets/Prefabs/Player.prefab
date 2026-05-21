@@ -175,7 +175,11 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   player: {fileID: 4196478278870692365}
   flap: {fileID: 8300000, guid: fa5988d03da59a044bd9438da50f2020, type: 3}
-  score: 0
+  score:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!114 &-6449033734812284979
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -244,11 +248,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 466845be034255c408904055bff0ed92, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5.01
+      value: 3.96
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 466845be034255c408904055bff0ed92, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.24
+      value: 1.64
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 466845be034255c408904055bff0ed92, type: 3}
       propertyPath: m_LocalPosition.z

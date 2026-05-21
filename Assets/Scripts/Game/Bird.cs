@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Bird : NetworkBehaviour
 {
@@ -8,7 +9,7 @@ public class Bird : NetworkBehaviour
     public AudioClip flap;
 
     [Header("Game State")]
-    public float score;
+    public NetworkVariable<int> score = new NetworkVariable<int>(0);
 
     private float targetRotationY = 0f;
 
@@ -16,7 +17,9 @@ public class Bird : NetworkBehaviour
     private const float forwardSpeed = 6f;
     private const float rotationSpeed = 100f; // horizontal rotation
     private const float jumpForce = 8f;
-    private const float deathBarrier = -5f;
+    private const float deathBarrier = 0.5f;
+
+    private float cameraOrbitAngle = 0f; // For W/S camera rotation
 
     private void Awake()
     {
@@ -50,6 +53,7 @@ public class Bird : NetworkBehaviour
 
         HandleJump();
         HandleRotation();
+        HandleCameraOrbit();
         CheckDeath();
     }
 
@@ -65,7 +69,6 @@ public class Bird : NetworkBehaviour
     {
         if (Input.GetButtonDown("Jump"))
         {
-            // Apply upward impulse without resetting vertical velocity
             player.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
 
             if (flap != null)
@@ -76,7 +79,6 @@ public class Bird : NetworkBehaviour
     private void HandleRotation()
     {
         float horizontal = Input.GetAxis("Horizontal");
-        // Increment target rotation smoothly
         targetRotationY += horizontal * rotationSpeed * Time.deltaTime;
     }
 
@@ -93,9 +95,23 @@ public class Bird : NetworkBehaviour
         player.MovePosition(player.position + new Vector3(forwardMovement.x, 0f, forwardMovement.z));
     }
 
+    private void HandleCameraOrbit()
+    {
+        float verticalInput = Input.GetAxis("Vertical"); // W/S keys
+        cameraOrbitAngle += verticalInput * 50f * Time.deltaTime; // Adjust speed as needed
+
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            // Rotate camera around bird on local Y axis
+            mainCam.transform.position = player.position + Quaternion.Euler(0f, cameraOrbitAngle, 0f) * new Vector3(0f, 2f, -5f);
+            mainCam.transform.LookAt(player.position + Vector3.up * 1f);
+        }
+    }
+
     private void CheckDeath()
     {
-        if (player.position.y < deathBarrier)
+        if (player.position.y <= deathBarrier)
             GameOver();
     }
 
@@ -105,7 +121,10 @@ public class Bird : NetworkBehaviour
 
         if (collision.collider.name == "ScoreIncreaser")
         {
-            score++;
+            // Only server updates score for network syncing
+            if (IsServer)
+                GameManager.score++;
+
             collision.collider.isTrigger = true;
 
             MeshRenderer renderer = collision.gameObject.GetComponent<MeshRenderer>();
@@ -120,5 +139,17 @@ public class Bird : NetworkBehaviour
     private void GameOver()
     {
         gameObject.SetActive(false);
+
+        // Only shutdown network if in the Game scene
+        if (SceneManager.GetActiveScene().name == "Game")
+        {
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost)
+                NetworkManager.Singleton.Shutdown();
+
+            // Reset Score
+            GameManager.score = 0;
+
+            SceneManager.LoadScene("Title");
+        }
     }
 }

@@ -194,11 +194,17 @@ public class MultiplayerMenu : MonoBehaviour
             joinViaCodeUI.SetActive(false);
             hostLobbyUI.SetActive(hostLobby != null);
 
-            playerCount.text = "";
-            foreach (var p in joinedLobby.Players)
+            // --- Refresh Player List ---
+            if (playerCount != null)
             {
-                if (p.Data != null && p.Data.ContainsKey("PlayerName"))
-                    playerCount.text += p.Data["PlayerName"].Value + "\n";
+                playerCount.text = "";
+                foreach (var p in joinedLobby.Players)
+                {
+                    if (p.Data != null && p.Data.ContainsKey("PlayerName"))
+                    {
+                        playerCount.text += p.Data["PlayerName"].Value + "\n";
+                    }
+                }
             }
         }
         else
@@ -226,7 +232,13 @@ public class MultiplayerMenu : MonoBehaviour
         if (lobbyUpdateTimer > 0) return;
 
         lobbyUpdateTimer = 1.1f;
-        try { joinedLobby = await LobbyService.Instance.GetLobbyAsync(joinedLobby.Id); }
+        try
+        {
+            joinedLobby = await LobbyService.Instance.GetLobbyAsync(joinedLobby.Id);
+
+            // --- Refresh the player list immediately ---
+            UpdateLobbyUI();
+        }
         catch { }
     }
 
