@@ -15,8 +15,26 @@
 Blue Bird 64's original gameplay loop featured a spin on the classic Flappy Bird gameplay loop, with a full 3D environment and a movable camera.
 
 Now, Blue Bird 64 x2 features online multiplayer support.
+#### Notice
+The game is very rough! It was developed in 7 days!
 ### Multiplayer
-TBA
+To play the game online, first enter the online mode via the Title.
+
+Then, Go to <b>join lobby</b>.
+
+<img src="repo/lobby1.png" alt="The initial lobby menu.">
+
+From there, you can either type a lobby code a friend has given you, or use the <b>join random lobby</b> feature to quickly hop into another person's game.
+
+After using either of the join options, you should see yourself in a lobby:
+
+<img src="repo/lobby2.png" alt="The menu upon hosting a lobby.">
+
+Depending on whether you are the host or not, there are different attributes of the lobby you can see.
+
+For <b>hosts</b>, you can see the code, and have the ability to either delete the lobby or start the game.
+
+Regular <b>members</b> cannot do any of the above, and can only participate in the game.
 
 ## Special Thanks
 [NetCode for GameObjects](https://docs.unity3d.com/Packages/com.unity.netcode.gameobjects@2.11/manual/index.html)
